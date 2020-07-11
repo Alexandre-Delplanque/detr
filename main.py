@@ -121,6 +121,7 @@ def main(args):
     model, criterion, postprocessors = build_model(args)
 
     # fine-tuning 
+    model = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=False, num_classes=8)
     checkpoint = torch.hub.load_state_dict_from_url(
                 url='https://dl.fbaipublicfiles.com/detr/detr-r101-2c7b67e5.pth',
                 map_location='cpu',
