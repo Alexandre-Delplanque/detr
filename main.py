@@ -119,6 +119,18 @@ def main(args):
     random.seed(seed)
 
     model, criterion, postprocessors = build_model(args)
+
+    # fine-tuning 
+    checkpoint = torch.hub.load_state_dict_from_url(
+                url='https://dl.fbaipublicfiles.com/detr/detr-r101-2c7b67e5.pth',
+                map_location='cpu',
+                check_hash=True)
+
+    del checkpoint["model"]["class_embed.weight"]
+    del checkpoint["model"]["class_embed.bias"]
+
+    model.load_state_dict(checkpoint["model"], strict=False)
+
     model.to(device)
 
     model_without_ddp = model
@@ -135,8 +147,11 @@ def main(args):
             "lr": args.lr_backbone,
         },
     ]
-    optimizer = torch.optim.AdamW(param_dicts, lr=args.lr,
-                                  weight_decay=args.weight_decay)
+    # optimizer = torch.optim.AdamW(param_dicts, lr=args.lr,
+    #                               weight_decay=args.weight_decay)
+    optimizer = torch.optim.SGD(param_dicts, lr=args.lr,
+                                momentum=0.9, weight_decay=args.weight_decay)
+
     lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, args.lr_drop)
 
     dataset_train = build_dataset(image_set='train', args=args)
