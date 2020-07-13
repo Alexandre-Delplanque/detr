@@ -119,19 +119,6 @@ def main(args):
     random.seed(seed)
 
     model, criterion, postprocessors = build_model(args)
-
-    # fine-tuning 
-    model = torch.hub.load('facebookresearch/detr', 'detr_resnet101', pretrained=False, num_classes=8)
-    checkpoint = torch.hub.load_state_dict_from_url(
-                url='https://dl.fbaipublicfiles.com/detr/detr-r101-2c7b67e5.pth',
-                map_location='cpu',
-                check_hash=True)
-
-    del checkpoint["model"]["class_embed.weight"]
-    del checkpoint["model"]["class_embed.bias"]
-
-    model.load_state_dict(checkpoint["model"], strict=False)
-
     model.to(device)
 
     model_without_ddp = model
@@ -191,7 +178,7 @@ def main(args):
                 args.resume, map_location='cpu', check_hash=True)
         else:
             checkpoint = torch.load(args.resume, map_location='cpu')
-        model_without_ddp.load_state_dict(checkpoint['model'])
+        model_without_ddp.load_state_dict(checkpoint['model'], strict=False)
         if not args.eval and 'optimizer' in checkpoint and 'lr_scheduler' in checkpoint and 'epoch' in checkpoint:
             optimizer.load_state_dict(checkpoint['optimizer'])
             lr_scheduler.load_state_dict(checkpoint['lr_scheduler'])
